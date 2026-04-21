@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -20,16 +21,18 @@ import java.util.UUID;
 public class DipendenteService {
 
     private final DipendenteRepository dipendenteRepository;
+    private final PasswordEncoder bcrypt;
 
-    public DipendenteService(DipendenteRepository dipendenteRepository) {
+    public DipendenteService(DipendenteRepository dipendenteRepository, PasswordEncoder bcrypt) {
         this.dipendenteRepository = dipendenteRepository;
+        this.bcrypt = bcrypt;
     }
 
     public Dipendente save(DipendenteDTO body) {
         if (this.dipendenteRepository.existsByEmail(body.email()))
             throw new BadRequestException("L'indirizzo email " + body.email() + "è già in uso");
 
-        Dipendente newDipendente = new Dipendente(body.username(), body.nome(), body.cognome(), body.email());
+        Dipendente newDipendente = new Dipendente(body.username(), body.nome(), body.cognome(), body.email(), this.bcrypt.encode(body.password()));
         Dipendente savedDipendente = this.dipendenteRepository.save(newDipendente);
 
         log.info("Il dipendente con id " + savedDipendente.getId() + "è stato salvato correttamente");

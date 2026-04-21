@@ -1,23 +1,31 @@
 package cristiancicale.G2S3U5.security;
 
+import cristiancicale.G2S3U5.entities.Dipendente;
 import cristiancicale.G2S3U5.exceptions.UnauthorizedException;
+import cristiancicale.G2S3U5.services.DipendenteService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 public class TokenFilter extends OncePerRequestFilter {
 
     private final TokenTools tokenTools;
+    private final DipendenteService dipendenteService;
 
-    public TokenFilter(TokenTools tokenTools) {
+    public TokenFilter(TokenTools tokenTools, DipendenteService dipendenteService) {
         this.tokenTools = tokenTools;
+        this.dipendenteService = dipendenteService;
     }
 
     @Override
@@ -30,6 +38,13 @@ public class TokenFilter extends OncePerRequestFilter {
         String accessToken = authHeader.replace("Bearer ", "");
 
         tokenTools.verifyToken(accessToken);
+
+        UUID dipendenteId = this.tokenTools.extractIdFromToken(accessToken);
+
+        Dipendente authenticatedDipendente = this.dipendenteService.findById(dipendenteId);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedDipendente, null, authenticatedDipendente.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }

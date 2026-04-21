@@ -4,7 +4,6 @@ import cristiancicale.G2S3U5.entities.Dipendente;
 import cristiancicale.G2S3U5.exceptions.BadRequestException;
 import cristiancicale.G2S3U5.exceptions.NotFoundException;
 import cristiancicale.G2S3U5.payloads.DipendenteDTO;
-import cristiancicale.G2S3U5.payloads.DipendentePayload;
 import cristiancicale.G2S3U5.repositories.DipendenteRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -51,23 +50,23 @@ public class DipendenteService {
         return this.dipendenteRepository.findById(dipendenteId).orElseThrow(() -> new NotFoundException(dipendenteId));
     }
 
-    public Dipendente findByIdAndUpdate(UUID dipendenteId, DipendentePayload body) {
+    public Dipendente findByIdAndUpdate(UUID dipendenteId, DipendenteDTO body) {
         Dipendente found = this.findById(dipendenteId);
 
-        if (!found.getEmail().equals(body.getEmail())) {
+        if (!found.getEmail().equals(body.email())) {
 
-            if (this.dipendenteRepository.existsByUsername(body.getEmail()))
-                throw new BadRequestException("L'username" + body.getUsername() + "è gia in uso");
+            if (this.dipendenteRepository.existsByUsername(body.email()))
+                throw new BadRequestException("L'username" + body.username() + "è gia in uso");
 
-            if (this.dipendenteRepository.existsByEmail(body.getEmail()))
-                throw new BadRequestException("L'indirizzo email" + body.getEmail() + "è gia in uso");
+            if (this.dipendenteRepository.existsByEmail(body.email()))
+                throw new BadRequestException("L'indirizzo email" + body.email() + "è gia in uso");
         }
 
-        found.setUsername(body.getUsername());
-        found.setNome(body.getNome());
-        found.setCognome(body.getCognome());
-        found.setEmail(body.getEmail());
-        found.setAvatar("https://ui-avatars.com/api/?name=" + body.getNome() + "+" + body.getCognome());
+        found.setUsername(body.username());
+        found.setNome(body.nome());
+        found.setCognome(body.cognome());
+        found.setEmail(body.email());
+        found.setAvatar("https://ui-avatars.com/api/?name=" + body.nome() + "+" + body.cognome());
 
         Dipendente updateDipendente = this.dipendenteRepository.save(found);
 
